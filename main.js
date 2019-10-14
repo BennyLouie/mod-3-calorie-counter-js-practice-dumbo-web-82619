@@ -1,9 +1,51 @@
 let caloriesList = document.querySelector('#calories-list')
 caloriesList.innerHTML = ''
 
-fetch('http://localhost:3000/api/v1/calorie_entries')
-    .then(resp => resp.json())
-    .then(respJSON => respJSON.forEach(loadCalories))
+let calorieForm = document.querySelector('#new-calorie-form')
+console.log(calorieForm)
+
+let progressBar = document.createElement('h3')
+progressBar.id = 'progress-bar'
+progressBar.innerText = `${progressBar.value} Total Calories`
+progressBar.value = 0
+console.log(progressBar.value)
+calorieForm.parentNode.prepend(progressBar)
+
+loadPage()
+
+calorieForm.addEventListener('submit', evt => {
+    evt.preventDefault()
+    let calories = evt.target["calorie-input"].value
+    let desc = evt.target["calorie-description"].value
+    console.log(evt.target)
+    //Something wrong with the fetch request/////////////////////////////////////////////
+    fetch('http://localhost:3000/api/v1/calorie_entries', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            calorie: calories,
+            note: desc
+        })
+    })
+    .then(resp => resp)
+    .then(respJSON => {
+        loadPage()
+    })
+})
+
+function loadPage(){
+    caloriesList.innerHTML = ''
+    progressBar.value = 0
+    return fetch('http://localhost:3000/api/v1/calorie_entries')
+        .then(resp => resp.json())
+        .then(respJSON => {
+            respJSON.forEach(loadCalories)
+        })
+}
+
 
 function loadCalories(obj){
     console.log(obj)
@@ -29,7 +71,7 @@ function loadCalories(obj){
 
     let em = document.createElement('em')
     em.className = 'uk-text-meta'
-    em.innerText = 'Additional Notes Go Here!'
+    em.innerText = obj.note
 
     width_45.append(em)
 
@@ -38,9 +80,21 @@ function loadCalories(obj){
     let menu = document.createElement('div')
     menu.className = 'list-item-menu'
 
-    let editBtn = <a class="edit-button" uk-toggle="target: #edit-form-container" uk-icon="icon: pencil"></a>
+    let editBtn = document.createElement('a')
+    editBtn.innerHTML = `<a class="edit-button" uk-toggle="target: #edit-form-container" uk-icon="icon: pencil"></a>`
 
-    let deleteBtn = <a class="delete-button" uk-icon="icon: trash"></a>
+    let deleteBtn = document.createElement('a')
+    deleteBtn.innerHTML = `<a class="delete-button" uk-icon="icon: trash"></a>`
+    deleteBtn.addEventListener('click', evt => {
+        console.log(obj)
+        fetch(`http://localhost:3000/api/v1/calorie_entries/${obj.id}`, {
+            method: 'DELETE'
+        })
+        .then(resp => resp.json())
+        .then(respJSON => {
+            loadPage()
+        })
+    })
 
     menu.append(editBtn, deleteBtn)
 
@@ -48,4 +102,6 @@ function loadCalories(obj){
 
     caloriesList.prepend(listItem)
 
+    progressBar.value += obj.calorie
+    progressBar.innerText = `${progressBar.value} Total Calories`
 }
