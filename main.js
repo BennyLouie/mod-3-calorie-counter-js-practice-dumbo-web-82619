@@ -2,7 +2,6 @@ let caloriesList = document.querySelector('#calories-list')
 caloriesList.innerHTML = ''
 
 let calorieForm = document.querySelector('#new-calorie-form')
-console.log(calorieForm)
 
 let progressBar = document.createElement('h3')
 progressBar.id = 'progress-bar'
@@ -17,8 +16,9 @@ calorieForm.addEventListener('submit', evt => {
     evt.preventDefault()
     let calories = evt.target["calorie-input"].value
     let desc = evt.target["calorie-description"].value
-    console.log(evt.target)
-    //Something wrong with the fetch request/////////////////////////////////////////////
+    
+    if (calories === "" || desc === ""){return}
+
     fetch('http://localhost:3000/api/v1/calorie_entries', {
         method: 'POST',
         headers: {
@@ -26,11 +26,13 @@ calorieForm.addEventListener('submit', evt => {
             'Accept': 'application/json'
         },
         body: JSON.stringify({
-            calorie: calories,
+            api_v1_calorie_entry: {
+            calorie: parseFloat(calories),
             note: desc
+            }
         })
     })
-    .then(resp => resp)
+    .then(resp => {resp.json()})
     .then(respJSON => {
         loadPage()
     })
@@ -48,7 +50,6 @@ function loadPage(){
 
 
 function loadCalories(obj){
-    console.log(obj)
     let listItem = document.createElement('li')
     listItem.className = 'calories-list-item'
 
@@ -79,24 +80,25 @@ function loadCalories(obj){
 
     let menu = document.createElement('div')
     menu.className = 'list-item-menu'
+    menu.innerHTML = `<a class="edit-button" uk-toggle="target: #edit-form-container" uk-icon="icon: pencil"></a><a class="delete-button" uk-icon="icon: trash"></a>`
+    // let editBtn = document.createElement('a')
+    // editBtn.innerHTML = `<a class="edit-button" uk-toggle="target: #edit-form-container" uk-icon="icon: pencil"></a>`
+//problem assigning attributes.......
+    // let deleteBtn = document.createElement('a')
+        // deleteBtn.className = 'delete-button'
+        // deleteBtn['uk-icon'] = 'icon: trash'
+    // deleteBtn.innerHTML = `<a class="delete-button" uk-icon="icon: trash"></a>`
+    // deleteBtn.addEventListener('click', evt => {
+    //     fetch(`http://localhost:3000/api/v1/calorie_entries/${obj.id}`, {
+    //         method: 'DELETE'
+    //     })
+    //     .then(resp => resp.json())
+    //     .then(respJSON => {
+    //         loadPage()
+    //     })
+    // })
 
-    let editBtn = document.createElement('a')
-    editBtn.innerHTML = `<a class="edit-button" uk-toggle="target: #edit-form-container" uk-icon="icon: pencil"></a>`
-
-    let deleteBtn = document.createElement('a')
-    deleteBtn.innerHTML = `<a class="delete-button" uk-icon="icon: trash"></a>`
-    deleteBtn.addEventListener('click', evt => {
-        console.log(obj)
-        fetch(`http://localhost:3000/api/v1/calorie_entries/${obj.id}`, {
-            method: 'DELETE'
-        })
-        .then(resp => resp.json())
-        .then(respJSON => {
-            loadPage()
-        })
-    })
-
-    menu.append(editBtn, deleteBtn)
+    // menu.append(editBtn, deleteBtn)
 
     listItem.append(grid, menu)
 
